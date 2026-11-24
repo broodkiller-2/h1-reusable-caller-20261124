@@ -1,0 +1,39 @@
+name: Owned private package access probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check owned package metadata without logging it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          request = urllib.request.Request(
+              'https://npm.pkg.github.com/@broodkiller-2%2fh1-owned-package-20261124',
+              headers={
+                  'Accept': 'application/vnd.npm.install-v1+json',
+                  'Authorization': f'Bearer {os.environ["GH_TOKEN"]}',
+                  'User-Agent': 'owned-package-access-probe',
+              },
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=15) as response:
+                  metadata = json.load(response)
+                  present = '0.0.1' in metadata.get('versions', {})
+                  print(f'package_read status={response.status} version_present={int(present)} request_id={response.headers.get("x-github-request-id", "none")}')
+          except urllib.error.HTTPError as error:
+              print(f'package_read status={error.code} version_present=0 request_id={error.headers.get("x-github-request-id", "none")}')
+          PY
