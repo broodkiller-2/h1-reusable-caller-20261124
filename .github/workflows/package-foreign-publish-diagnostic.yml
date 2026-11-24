@@ -1,0 +1,44 @@
+name: Owned package publish denial diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Capture only npm error category
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: |
+          cat > package.json <<'JSON'
+          {
+            "name": "@broodkiller-2/h1-owned-package-20261124",
+            "version": "0.0.2",
+            "description": "Owned package permission boundary probe",
+            "main": "index.js",
+            "repository": {
+              "type": "git",
+              "url": "https://github.com/broodkiller-2/h1-package-fixture-20261124"
+            },
+            "publishConfig": {
+              "registry": "https://npm.pkg.github.com"
+            }
+          }
+          JSON
+          printf "module.exports = 'owned permission probe';\n" > index.js
+          set +e
+          npm publish --registry=https://npm.pkg.github.com > /dev/null 2> npm-error.txt
+          status=$?
+          set -e
+          code=$(grep -oE 'E[A-Z0-9]{2,}' npm-error.txt | head -1 || true)
+          echo "foreign_publish_diagnostic exit=$status code=${code:-none}"
+          rm -f npm-error.txt
