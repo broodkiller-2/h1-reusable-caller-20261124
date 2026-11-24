@@ -1,0 +1,11 @@
+name: Owned cross-repository boundary probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  call-host:
+    uses: broodkiller-2/h1-reusable-host-20261124/.github/workflows/host-boundary.yml@main
