@@ -1,0 +1,10 @@
+name: Owned reusable workflow read-limit probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-host-read-only:
+    permissions:
+      contents: read
+    uses: broodkiller-2/h1-reusable-host-20261124/.github/workflows/host-boundary.yml@main
