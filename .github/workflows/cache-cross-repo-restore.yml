@@ -1,0 +1,23 @@
+name: Owned cross-repository cache restore check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    cache-mode: read
+    steps:
+      - name: Restore exact cache key from other owned repository
+        id: restore
+        uses: actions/cache/restore@v4
+        with:
+          path: marker
+          key: h1-cache-allowed-45415666698
+      - name: Observe only synthetic marker
+        run: |
+          if test -f marker/allowed.txt; then present=1; else present=0; fi
+          echo "cross_repo_cache_hit=${{ steps.restore.outputs.cache-hit }} marker_present=$present"
